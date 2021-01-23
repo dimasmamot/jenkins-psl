@@ -12,6 +12,7 @@ def main(script) {
     sbuild = new build()
     spostbuild = new postbuild()
     sdeploy = new deploy()
+    spostdeploy = new postdeploy()
     
     // Pipeline specific variable get from injected env
     // Mandatory variable will be check at details & validation steps
@@ -24,6 +25,8 @@ def main(script) {
 
     // Have default value
     def docker_registry = ("${script.env.docker_registry}" != "null") ? "${script.env.docker_registry}" : "${c.default_docker_registry}"
+    // Timeout for Healtcheck
+    def timeout_hc = (script.env.timeout_hc != "null") ? script.env.timeout_hc : 10
 
     
     // Initialize docker tools
@@ -38,7 +41,8 @@ def main(script) {
         app_port,
         pr_num,
         dockerTool,
-        docker_registry
+        docker_registry,
+        timeout_hc
     )
     
     ansiColor('xterm') {
@@ -63,9 +67,9 @@ def main(script) {
             sdeploy.deploy(p)
         }
     
-        //stage('Service Healthcheck') {
-            // TODO: Call healthcheck function
-        //}
+        stage('Service Healthcheck') {
+            spostdeploy.healthcheck(p)
+        }
     }
 }
  
